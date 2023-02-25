@@ -1,100 +1,79 @@
-package campionato;
-
-import java.time.LocalDate;
-import java.text.SimpleDateFormat;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author Perre
  */
 public class Campionato {
-    private char girone; // DEVE ESSERE 'A' (andata) o 'R' (ritorno)
-    private int giornata; // DEVE ESSERE COMPRESO TRA 1 e 5
-    private LocalDate data; 
-    private String squadraCasa;
-    private String squadraOspite;
-    private int golCasa; // DEVE ESSERE COMPRESO TRA 0 e 10
-    private int golOspite; // DEVE ESSERE COMPRESO TRA 0 e 10
-
-    public Campionato(char girone, int giornata, LocalDate data, String squadraCasa, String squadraOspite, int golCasa, int golOspite) {
-        this.girone = girone;
-        this.giornata = giornata;
-        this.data = data;
-        this.squadraCasa = squadraCasa;
-        this.squadraOspite = squadraOspite;
-        this.golCasa = golCasa;
-        this.golOspite = golOspite;
+    private Partita[] matches = new Partita[300];
+    File file = new File("partite.dat");
+    Partita partita;
+     
+     
+    // COSTRUTTORE
+    public Campionato(Partita[] matches){
+        this.matches = matches;
     }
-
-    public char getGirone() {
-        return girone;
-    }
-
-    public void setGirone(char girone) {
-        if(girone != 'A' || girone != 'R'){
-            throw new RuntimeException("'girone' non accetta questi parametri");
-        }
-        this.girone = girone;
-    }
-
-    public int getGiornata() {
-        return giornata;
-    }
-
-    public void setGiornata(int giornata) {
-        if(giornata < 0 || giornata > 5){
-            throw new RuntimeException("giornata non esistente");
-        }
-        this.giornata = giornata;
-    }
-
-    public LocalDate getData() {
-        return data;
-    }
-
-    public void setData(LocalDate data) {
-        this.data = data;
-    }
-
-    public String getSquadraCasa() {
-        return squadraCasa;
-    }
-
-    public void setSquadraCasa(String squadraCasa) {
-        this.squadraCasa = squadraCasa;
-    }
-
-    public String getSquadraOspite() {
-        return squadraOspite;
-    }
-
-    public void setSquadraOspite(String squadraOspite) {
-        this.squadraOspite = squadraOspite;
-    }
-
-    public int getGolCasa() {
-        return golCasa;
-    }
-
-    public void setGolCasa(int golCasa) {
-        if(golCasa < 0 || golCasa > 10){
-            throw new RuntimeException("parametro errato");
-        }
-        this.golCasa = golCasa;
-    }
-
-    public int getGolOspite() {
-        return golOspite;
-    }
-
-    public void setGolOspite(int golOspite) {
-        if(golOspite < 0 || golOspite > 10){
-            throw new RuntimeException("parametro errato");
-        }
-        this.golOspite = golOspite;
+     
+    // Create, Read, Update, Delete
+    public void create(char girone, int giornata, Date data, String squadraCasa, 
+            String squadraOspite, int golCasa, int golOspiti) throws FileNotFoundException, IOException{
+        Partita nuovaPartita = new Partita(girone, giornata, data, squadraCasa, squadraOspite, golCasa, golOspiti);
+         
+        // SCRIVO LA NUOVA PARTITA SUL FILE
+        FileOutputStream fout = new FileOutputStream(file, true);
+        ObjectOutputStream out = new ObjectOutputStream(fout);
+        out.writeObject(nuovaPartita);
     }
     
-    public String toString(){
-        return "girone: " + girone + " " + "giornata: " + giornata + " " + "giorno: " + data + " " + "squadra casa: " + squadraCasa + " " + "squadra ospite: " + squadraOspite + " " + "gol casa: " + golCasa + " " + "gol ospite: " + golOspite;
+    public void read() throws FileNotFoundException, IOException{
+        FileInputStream fin = new FileInputStream("partite.dat");
+        ObjectInputStream in = new ObjectInputStream(fin);
+        char girone = in.readChar();
+        int giornata = in.readInt();
+        Date data = new Date(in.readLong());
+        String squadraCasa = in.readUTF();
+        String squadraOspite = in.readUTF();
+        int golCasa = in.readInt();
+        int golOspiti = in.readInt();
+    }
+    
+    public void update(int indice, char girone, int giornata, Date data, String squadraCasa,
+            String squadraOspite, int golCasa, int golOspiti) throws FileNotFoundException, IOException{
+        Partita updatePartita = matches[indice];
+        updatePartita = new Partita(girone, giornata, data, squadraCasa, squadraOspite, golCasa, golOspiti);
+        
+        //AGGIORNO LE PARTITE NEL FILE
+        FileOutputStream fout = new FileOutputStream(file, true);
+        ObjectOutputStream out = new ObjectOutputStream(fout);
+        out.writeObject(updatePartita);
+    }
+    
+    public void delete(int indice){
+        matches[indice] = null;
+    }
+    
+    // CALCOLI CLASSIFICA
+    Map<String, Integer> punti = new HashMap<>();
+    Map<String, Integer> golFatti = new HashMap<>();
+    Map<String, Integer> golSubiti = new HashMap<>();
+    for (Partita partita: partite) {
+        String squadraCasa = partita.getSquadraCasa();
+        String squadraOspite = partita.getSquadraOspite();
+        int puntiCasa = partita.puntiCasa();
+        int puntiOspite = partita.puntiOspiti();
+        int golFattiCasa = partita.golFattiCasa();
+        int golFattiOspite = partita.golFattiOspiti();
+        int golSubitiCasa = partita.golSubitiCasa();
+        int golSubitiOspite = partita.golSubitiOspiti();
     }
 }
